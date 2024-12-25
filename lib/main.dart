@@ -13,9 +13,12 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Shopping List',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.amber),
-        useMaterial3: true,
+      theme: ThemeData.dark().copyWith(
+        colorScheme: ColorScheme.fromSeed(
+            seedColor: const Color.fromARGB(255, 147, 229, 250),
+            brightness: Brightness.dark,
+            surface: const Color.fromARGB(255, 42, 51, 59)),
+        scaffoldBackgroundColor: const Color.fromARGB(255, 50, 28, 60),
       ),
       home: const HomePage(),
     );
