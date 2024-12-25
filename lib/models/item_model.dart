@@ -4,13 +4,13 @@ import 'package:shopping_list/models/category_model.dart';
 class ItemModel {
   int id;
   String name;
-  int count;
+  int quantity;
   CategoryModel category;
 
   ItemModel(
       {required this.id,
       required this.name,
-      required this.count,
+      required this.quantity,
       required this.category});
 
   static List<ItemModel> getItems() {
@@ -19,17 +19,17 @@ class ItemModel {
     items.add(ItemModel(
         id: 1,
         name: 'Milk',
-        count: 1,
+        quantity: 1,
         category: categories[Categories.dairy]!));
     items.add(ItemModel(
         id: 2,
         name: 'Bananas',
-        count: 5,
+        quantity: 5,
         category: categories[Categories.fruit]!));
     items.add(ItemModel(
         id: 3,
         name: 'Beef Steak',
-        count: 1,
+        quantity: 1,
         category: categories[Categories.meat]!));
 
     return items;

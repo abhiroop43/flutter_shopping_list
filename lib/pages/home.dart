@@ -30,51 +30,16 @@ class _HomePageState extends State<HomePage> {
         body: ListView.builder(
           itemCount: items.length,
           itemBuilder: (context, index) {
-            return _ListItem(
-              items: items,
-              index: index,
+            return ListTile(
+              title: Text(items[index].name),
+              leading: Container(
+                color: items[index].category.categoryColor,
+                width: 24,
+                height: 24,
+              ),
+              trailing: Text(items[index].quantity.toString()),
             );
           },
         ));
-  }
-}
-
-class _ListItem extends StatelessWidget {
-  const _ListItem({
-    required this.items,
-    required this.index,
-  });
-
-  final List<ItemModel> items;
-  final int index;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Container(
-          padding: const EdgeInsets.only(left: 10, top: 10, bottom: 10),
-          child: Container(
-            color: items[index].category.categoryColor,
-            width: 30,
-            height: 30,
-          ),
-        ),
-        SizedBox(width: 20),
-        Expanded(
-          child: Text(items[index].name,
-              textAlign: TextAlign.left,
-              style: const TextStyle(color: Colors.white)),
-        ),
-        Padding(
-          padding: const EdgeInsets.only(left: 10.0, right: 10.0),
-          child: Text(
-            items[index].count.toString(),
-            style: TextStyle(color: Colors.white),
-          ),
-        ),
-      ],
-    );
   }
 }
