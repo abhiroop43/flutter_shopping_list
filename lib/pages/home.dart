@@ -42,15 +42,39 @@ class _HomePageState extends State<HomePage> {
             IconButton(onPressed: _addItem, icon: const Icon(Icons.add))
           ],
         ),
-        body: ListView.builder(
-          itemCount: items.length,
-          itemBuilder: (context, index) {
-            return _ListItem(
-              items: items,
-              index: index,
-            );
-          },
-        ));
+        body: items.isNotEmpty
+            ? ListView.builder(
+                itemCount: items.length,
+                itemBuilder: (context, index) {
+                  return Dismissible(
+                    key: Key(items[index].id.toString()),
+                    onDismissed: (direction) {
+                      setState(() {
+                        var deletedItem = items.removeAt(index);
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                            content: Text(
+                              '${deletedItem.name} removed from list',
+                              style: TextStyle(
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onErrorContainer),
+                            ),
+                            backgroundColor:
+                                Theme.of(context).colorScheme.errorContainer));
+                      });
+                    },
+                    background: Container(
+                        color: Theme.of(context).colorScheme.errorContainer),
+                    child: _ListItem(
+                      items: items,
+                      index: index,
+                    ),
+                  );
+                },
+              )
+            : const Center(
+                child: Text('No items added yet'),
+              ));
   }
 }
 
@@ -65,29 +89,14 @@ class _ListItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Dismissible(
-      key: Key(items[index].id.toString()),
-      onDismissed: (direction) {
-        var deletedItem = items.removeAt(index);
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text(
-              '${deletedItem.name} removed from list',
-              style: TextStyle(
-                  color: Theme.of(context).colorScheme.onErrorContainer),
-            ),
-            backgroundColor: Theme.of(context).colorScheme.errorContainer));
-      },
-      background:
-          Container(color: Theme.of(context).colorScheme.errorContainer),
-      child: ListTile(
-        title: Text(items[index].name),
-        leading: Container(
-          color: items[index].category.categoryColor,
-          width: 24,
-          height: 24,
-        ),
-        trailing: Text(items[index].quantity.toString()),
+    return ListTile(
+      title: Text(items[index].name),
+      leading: Container(
+        color: items[index].category.categoryColor,
+        width: 24,
+        height: 24,
       ),
+      trailing: Text(items[index].quantity.toString()),
     );
   }
 }

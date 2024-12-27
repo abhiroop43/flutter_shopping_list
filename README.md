@@ -44,7 +44,18 @@ This project is a starting point for a Flutter application.
 
 - Add new items to the shopping list.
 - View the list of items.
+- Delete completed items.
 - Categorize items by type (e.g., vegetables, fruits, meat).
+
+### Screenshots
+
+![Groceries List](screenshots/list.png)
+
+![New Item Form](screenshots/new_item.png)
+
+![Form Validations](screenshots/validations.png)
+
+![Item Categories](screenshots/categories.png)
 
 ### License
 
