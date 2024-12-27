@@ -12,10 +12,21 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   List<ItemModel> items = [];
 
-  @override
-  void initState() {
-    super.initState();
-    items = ItemModel.getItems();
+  // @override
+  // void initState() {
+  //   super.initState();
+  //   items = ItemModel.getItems();
+  // }
+
+  void _addItem() async {
+    final newItem = await Navigator.of(context)
+        .push(MaterialPageRoute(builder: (context) => const NewItemPage()));
+
+    if (newItem != null) {
+      setState(() {
+        items.add(newItem as ItemModel);
+      });
+    }
   }
 
   @override
@@ -28,10 +39,7 @@ class _HomePageState extends State<HomePage> {
             style: TextStyle(color: Colors.white),
           ),
           actions: [
-            IconButton(
-                onPressed: () => Navigator.of(context).push(MaterialPageRoute(
-                    builder: (context) => const NewItemPage())),
-                icon: const Icon(Icons.add))
+            IconButton(onPressed: _addItem, icon: const Icon(Icons.add))
           ],
         ),
         body: ListView.builder(
