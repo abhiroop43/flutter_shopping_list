@@ -65,14 +65,29 @@ class _ListItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
-      title: Text(items[index].name),
-      leading: Container(
-        color: items[index].category.categoryColor,
-        width: 24,
-        height: 24,
+    return Dismissible(
+      key: Key(items[index].id.toString()),
+      onDismissed: (direction) {
+        var deletedItem = items.removeAt(index);
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text(
+              '${deletedItem.name} removed from list',
+              style: TextStyle(
+                  color: Theme.of(context).colorScheme.onErrorContainer),
+            ),
+            backgroundColor: Theme.of(context).colorScheme.errorContainer));
+      },
+      background:
+          Container(color: Theme.of(context).colorScheme.errorContainer),
+      child: ListTile(
+        title: Text(items[index].name),
+        leading: Container(
+          color: items[index].category.categoryColor,
+          width: 24,
+          height: 24,
+        ),
+        trailing: Text(items[index].quantity.toString()),
       ),
-      trailing: Text(items[index].quantity.toString()),
     );
   }
 }
