@@ -49,13 +49,12 @@ This project is a starting point for a Flutter application.
 
 ### Screenshots
 
-![Groceries List](screenshots/list.png)
-
-![New Item Form](screenshots/new_item.png)
-
-![Form Validations](screenshots/validations.png)
-
-![Item Categories](screenshots/categories.png)
+<p>
+   <img src="screenshots/list.png" width="200">
+   <img src="screenshots/new_item.png" width="200">
+   <img src="screenshots/validations.png" width="200">
+   <img src="screenshots/categories.png" width="200">
+</p>
 
 ### License
 
