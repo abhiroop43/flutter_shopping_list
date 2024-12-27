@@ -54,6 +54,7 @@ This project is a starting point for a Flutter application.
    <img src="screenshots/new_item.png" width="200">
    <img src="screenshots/validations.png" width="200">
    <img src="screenshots/categories.png" width="200">
+   <img src="screenshots/delete.png" width="200">
 </p>
 
 ### License
