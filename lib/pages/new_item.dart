@@ -1,7 +1,10 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:http/http.dart' as http;
 import 'package:shopping_list/data/categories.dart';
 import 'package:shopping_list/models/category_model.dart';
-import 'package:shopping_list/models/item_model.dart';
 
 class NewItemPage extends StatefulWidget {
   const NewItemPage({super.key});
@@ -16,7 +19,7 @@ class _NewItemPageState extends State<NewItemPage> {
   var quantityController = TextEditingController(text: '1');
   var selectedCategory = categories[Categories.vegetables];
 
-  void _saveItem() {
+  void _saveItem() async {
     if (_formKey.currentState!.validate()) {
       debugPrint('Save item:');
       debugPrint('Name: ${nameController.text}');
@@ -25,11 +28,29 @@ class _NewItemPageState extends State<NewItemPage> {
 
       _formKey.currentState!.save();
 
-      Navigator.of(context).pop(ItemModel(
-          id: DateTime.now().millisecondsSinceEpoch,
-          name: nameController.text,
-          quantity: int.parse(quantityController.text),
-          category: selectedCategory!));
+      var url = Uri.https(dotenv.env['BASEURL']!, 'shoppingList.json');
+      var response = await http.post(url,
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: json.encode({
+            'name': nameController.text,
+            'quantity': int.parse(quantityController.text),
+            'category': selectedCategory?.name,
+          }));
+
+      debugPrint('Response: ${response.statusCode} : ${response.body}');
+
+      if (response.statusCode == 200) {
+        debugPrint('Item saved');
+      } else {
+        debugPrint('Error saving item');
+        return;
+      }
+
+      if (!context.mounted) return;
+
+      Navigator.of(context).pop();
     }
   }
 
