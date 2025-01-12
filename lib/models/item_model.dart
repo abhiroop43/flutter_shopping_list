@@ -2,7 +2,7 @@ import 'package:shopping_list/data/categories.dart';
 import 'package:shopping_list/models/category_model.dart';
 
 class ItemModel {
-  int id;
+  String id;
   String name;
   int quantity;
   CategoryModel category;
@@ -17,17 +17,17 @@ class ItemModel {
     List<ItemModel> items = [];
 
     items.add(ItemModel(
-        id: 1,
+        id: '1',
         name: 'Milk',
         quantity: 1,
         category: categories[Categories.dairy]!));
     items.add(ItemModel(
-        id: 2,
+        id: '2',
         name: 'Bananas',
         quantity: 5,
         category: categories[Categories.fruit]!));
     items.add(ItemModel(
-        id: 3,
+        id: '3',
         name: 'Beef Steak',
         quantity: 1,
         category: categories[Categories.meat]!));

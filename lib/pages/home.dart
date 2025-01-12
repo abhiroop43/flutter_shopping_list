@@ -1,4 +1,9 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:http/http.dart' as http;
+import 'package:shopping_list/data/categories.dart';
 import 'package:shopping_list/models/item_model.dart';
 import 'package:shopping_list/pages/new_item.dart';
 
@@ -12,11 +17,47 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   List<ItemModel> items = [];
 
-  // @override
-  // void initState() {
-  //   super.initState();
-  //   items = ItemModel.getItems();
-  // }
+  @override
+  void initState() {
+    super.initState();
+    // items = ItemModel.getItems();
+    _getAllItems();
+  }
+
+  void _getAllItems() async {
+    List<ItemModel> fetchedItems = [];
+    var url = Uri.https(dotenv.env['BASEURL']!, 'shoppingList.json');
+    var response = await http.get(url, headers: {
+      'Accept': 'application/json',
+    });
+
+    debugPrint('Response: ${response.statusCode} : ${response.body}');
+
+    if (response.statusCode != 200) {
+      debugPrint('Error occured: ${response.body}');
+    }
+
+    var responseData = json.decode(response.body) as Map<String, dynamic>?;
+
+    if (responseData == null || responseData.isEmpty) {
+      return;
+    }
+
+    for (var item in responseData.entries) {
+      var itemCategory = categories.entries
+          .firstWhere((x) => x.value.name == item.value['category'])
+          .value;
+      fetchedItems.add(ItemModel(
+          id: item.key,
+          name: item.value['name'],
+          quantity: item.value['quantity'],
+          category: itemCategory));
+    }
+
+    setState(() {
+      items = fetchedItems;
+    });
+  }
 
   void _addItem() async {
     final newItem = await Navigator.of(context)
@@ -27,6 +68,8 @@ class _HomePageState extends State<HomePage> {
         items.add(newItem as ItemModel);
       });
     }
+
+    _getAllItems();
   }
 
   @override

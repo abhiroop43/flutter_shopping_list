@@ -21,10 +21,10 @@ class _NewItemPageState extends State<NewItemPage> {
 
   void _saveItem() async {
     if (_formKey.currentState!.validate()) {
-      debugPrint('Save item:');
-      debugPrint('Name: ${nameController.text}');
-      debugPrint('Quantity: ${quantityController.text}');
-      debugPrint('Category: ${selectedCategory!.name}');
+      // debugPrint('Save item:');
+      // debugPrint('Name: ${nameController.text}');
+      // debugPrint('Quantity: ${quantityController.text}');
+      // debugPrint('Category: ${selectedCategory!.name}');
 
       _formKey.currentState!.save();
 
@@ -39,7 +39,7 @@ class _NewItemPageState extends State<NewItemPage> {
             'category': selectedCategory?.name,
           }));
 
-      debugPrint('Response: ${response.statusCode} : ${response.body}');
+      // debugPrint('Response: ${response.statusCode} : ${response.body}');
 
       if (response.statusCode == 200) {
         debugPrint('Item saved');
