@@ -16,6 +16,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   List<ItemModel> items = [];
+  bool isLoading = true;
 
   @override
   void initState() {
@@ -31,7 +32,7 @@ class _HomePageState extends State<HomePage> {
       'Accept': 'application/json',
     });
 
-    debugPrint('Response: ${response.statusCode} : ${response.body}');
+    // debugPrint('Response: ${response.statusCode} : ${response.body}');
 
     if (response.statusCode != 200) {
       debugPrint('Error occured: ${response.body}');
@@ -56,6 +57,7 @@ class _HomePageState extends State<HomePage> {
 
     setState(() {
       items = fetchedItems;
+      isLoading = false;
     });
   }
 
@@ -69,11 +71,21 @@ class _HomePageState extends State<HomePage> {
       });
     }
 
-    _getAllItems();
+    // _getAllItems();
   }
 
   @override
   Widget build(BuildContext context) {
+    var noDataContent = const Center(
+      child: Text('No items added yet'),
+    );
+
+    if (isLoading) {
+      noDataContent = Center(
+        child: CircularProgressIndicator(),
+      );
+    }
+
     return Scaffold(
         appBar: AppBar(
           // backgroundColor: Colors.grey[900],
@@ -115,9 +127,7 @@ class _HomePageState extends State<HomePage> {
                   );
                 },
               )
-            : const Center(
-                child: Text('No items added yet'),
-              ));
+            : noDataContent);
   }
 }
 

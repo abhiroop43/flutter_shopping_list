@@ -5,6 +5,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'package:shopping_list/data/categories.dart';
 import 'package:shopping_list/models/category_model.dart';
+import 'package:shopping_list/models/item_model.dart';
 
 class NewItemPage extends StatefulWidget {
   const NewItemPage({super.key});
@@ -18,6 +19,7 @@ class _NewItemPageState extends State<NewItemPage> {
   var nameController = TextEditingController();
   var quantityController = TextEditingController(text: '1');
   var selectedCategory = categories[Categories.vegetables];
+  bool isBeingAdded = false;
 
   void _saveItem() async {
     if (_formKey.currentState!.validate()) {
@@ -27,6 +29,10 @@ class _NewItemPageState extends State<NewItemPage> {
       // debugPrint('Category: ${selectedCategory!.name}');
 
       _formKey.currentState!.save();
+
+      setState(() {
+        isBeingAdded = true;
+      });
 
       var url = Uri.https(dotenv.env['BASEURL']!, 'shoppingList.json');
       var response = await http.post(url,
@@ -50,7 +56,16 @@ class _NewItemPageState extends State<NewItemPage> {
 
       if (!context.mounted) return;
 
-      Navigator.of(context).pop();
+      setState(() {
+        isBeingAdded = false;
+      });
+
+      final Map<String, dynamic> itemId = json.decode(response.body);
+      Navigator.of(context).pop(ItemModel(
+          id: itemId['name'],
+          name: nameController.text,
+          quantity: int.parse(quantityController.text),
+          category: selectedCategory!));
     }
   }
 
@@ -150,9 +165,11 @@ class _NewItemPageState extends State<NewItemPage> {
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     TextButton(
-                      onPressed: () {
-                        _formKey.currentState!.reset();
-                      },
+                      onPressed: isBeingAdded
+                          ? null
+                          : () {
+                              _formKey.currentState!.reset();
+                            },
                       style: TextButton.styleFrom(
                         backgroundColor: Theme.of(context).colorScheme.tertiary,
                         foregroundColor:
@@ -169,8 +186,14 @@ class _NewItemPageState extends State<NewItemPage> {
                         foregroundColor:
                             Theme.of(context).colorScheme.onPrimary,
                       ),
-                      onPressed: _saveItem,
-                      child: const Text('Save'),
+                      onPressed: isBeingAdded ? null : _saveItem,
+                      child: isBeingAdded
+                          ? SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(),
+                            )
+                          : const Text('Save'),
                     ),
                   ],
                 )
