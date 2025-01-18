@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
+import 'package:shopping_list/common/utils.dart';
 import 'package:shopping_list/data/categories.dart';
 import 'package:shopping_list/models/category_model.dart';
 import 'package:shopping_list/models/item_model.dart';
@@ -22,6 +23,8 @@ class _NewItemPageState extends State<NewItemPage> {
   bool isBeingAdded = false;
 
   void _saveItem() async {
+    final errorMessageSnackBar = showErrorSnackBar('Error saving item.');
+
     if (_formKey.currentState!.validate()) {
       // debugPrint('Save item:');
       // debugPrint('Name: ${nameController.text}');
@@ -35,37 +38,54 @@ class _NewItemPageState extends State<NewItemPage> {
       });
 
       var url = Uri.https(dotenv.env['BASEURL']!, 'shoppingList.json');
-      var response = await http.post(url,
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: json.encode({
-            'name': nameController.text,
-            'quantity': int.parse(quantityController.text),
-            'category': selectedCategory?.name,
-          }));
+      try {
+        var response = await http.post(url,
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: json.encode({
+              'name': nameController.text,
+              'quantity': int.parse(quantityController.text),
+              'category': selectedCategory?.name,
+            }));
 
-      // debugPrint('Response: ${response.statusCode} : ${response.body}');
+        // debugPrint('Response: ${response.statusCode} : ${response.body}');
 
-      if (response.statusCode == 200) {
-        debugPrint('Item saved');
-      } else {
-        debugPrint('Error saving item');
-        return;
+        if (response.statusCode >= 400) {
+          debugPrint('Error saving item');
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(errorMessageSnackBar);
+          }
+          setState(() {
+            isBeingAdded = false;
+          });
+          return;
+        } else {
+          debugPrint('Item saved');
+        }
+
+        if (!context.mounted) return;
+
+        setState(() {
+          isBeingAdded = false;
+        });
+
+        final Map<String, dynamic> itemId = json.decode(response.body);
+        Navigator.of(context).pop(ItemModel(
+            id: itemId['name'],
+            name: nameController.text,
+            quantity: int.parse(quantityController.text),
+            category: selectedCategory!));
+      } catch (error) {
+        debugPrint('Error saving item: ${error.toString()}');
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(errorMessageSnackBar);
+        }
+
+        setState(() {
+          isBeingAdded = false;
+        });
       }
-
-      if (!context.mounted) return;
-
-      setState(() {
-        isBeingAdded = false;
-      });
-
-      final Map<String, dynamic> itemId = json.decode(response.body);
-      Navigator.of(context).pop(ItemModel(
-          id: itemId['name'],
-          name: nameController.text,
-          quantity: int.parse(quantityController.text),
-          category: selectedCategory!));
     }
   }
 

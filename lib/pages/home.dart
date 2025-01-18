@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
+import 'package:shopping_list/common/utils.dart';
 import 'package:shopping_list/data/categories.dart';
 import 'package:shopping_list/models/item_model.dart';
 import 'package:shopping_list/pages/new_item.dart';
@@ -27,38 +28,60 @@ class _HomePageState extends State<HomePage> {
 
   void _getAllItems() async {
     List<ItemModel> fetchedItems = [];
+    final errorMessageSnackBar = showErrorSnackBar('Error retrieving items.');
+
     var url = Uri.https(dotenv.env['BASEURL']!, 'shoppingList.json');
-    var response = await http.get(url, headers: {
-      'Accept': 'application/json',
-    });
 
-    // debugPrint('Response: ${response.statusCode} : ${response.body}');
+    try {
+      var response = await http.get(url, headers: {
+        'Accept': 'application/json',
+      });
 
-    if (response.statusCode != 200) {
-      debugPrint('Error occured: ${response.body}');
+      // debugPrint('Response: ${response.statusCode} : ${response.body}');
+
+      if (response.statusCode >= 400) {
+        debugPrint('Error occured: ${response.body}');
+        setState(() {
+          isLoading = false;
+        });
+
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(errorMessageSnackBar);
+        }
+
+        return;
+      }
+
+      var responseData = json.decode(response.body) as Map<String, dynamic>?;
+
+      if (responseData == null || responseData.isEmpty) {
+        return;
+      }
+
+      for (var item in responseData.entries) {
+        var itemCategory = categories.entries
+            .firstWhere((x) => x.value.name == item.value['category'])
+            .value;
+        fetchedItems.add(ItemModel(
+            id: item.key,
+            name: item.value['name'],
+            quantity: item.value['quantity'],
+            category: itemCategory));
+      }
+
+      setState(() {
+        items = fetchedItems;
+        isLoading = false;
+      });
+    } catch (error) {
+      debugPrint('Error saving item: ${error.toString()}');
+      setState(() {
+        isLoading = false;
+      });
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(errorMessageSnackBar);
+      }
     }
-
-    var responseData = json.decode(response.body) as Map<String, dynamic>?;
-
-    if (responseData == null || responseData.isEmpty) {
-      return;
-    }
-
-    for (var item in responseData.entries) {
-      var itemCategory = categories.entries
-          .firstWhere((x) => x.value.name == item.value['category'])
-          .value;
-      fetchedItems.add(ItemModel(
-          id: item.key,
-          name: item.value['name'],
-          quantity: item.value['quantity'],
-          category: itemCategory));
-    }
-
-    setState(() {
-      items = fetchedItems;
-      isLoading = false;
-    });
   }
 
   void _addItem() async {
