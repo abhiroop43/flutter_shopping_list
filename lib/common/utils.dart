@@ -13,5 +13,6 @@ SnackBar showErrorSnackBar(String message) {
       ],
     ),
     behavior: SnackBarBehavior.floating,
+    // margin: EdgeInsetsDirectional.only(bottom: 8.0),
   );
 }

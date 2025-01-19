@@ -55,6 +55,10 @@ class _HomePageState extends State<HomePage> {
       var responseData = json.decode(response.body) as Map<String, dynamic>?;
 
       if (responseData == null || responseData.isEmpty) {
+        setState(() {
+          isLoading = false;
+        });
+
         return;
       }
 
@@ -97,6 +101,47 @@ class _HomePageState extends State<HomePage> {
     // _getAllItems();
   }
 
+  void _removeItem(DismissDirection direction, int index) async {
+    final SnackBar errorMessageSnackBar =
+        showErrorSnackBar('Failed to delete item.');
+    final item = items[index];
+    var url = Uri.https(dotenv.env['BASEURL']!, 'shoppingList/${item.id}.json');
+
+    try {
+      var response = await http.delete(url, headers: {
+        'Accept': 'application/json',
+      });
+
+      debugPrint('${response.statusCode} : ${response.body.toString()}');
+      if (response.statusCode >= 400) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(errorMessageSnackBar);
+        }
+        return;
+      }
+
+      setState(() {
+        var deletedItem = items.removeAt(index);
+
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+              content: Text(
+                '${deletedItem.name} removed from list',
+                style: TextStyle(
+                    color: Theme.of(context).colorScheme.onPrimaryContainer),
+              ),
+              backgroundColor: Theme.of(context).colorScheme.primaryContainer));
+        }
+      });
+    } catch (error) {
+      debugPrint('Error occurred. ${error.toString()}');
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(errorMessageSnackBar);
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     var noDataContent = const Center(
@@ -127,19 +172,7 @@ class _HomePageState extends State<HomePage> {
                   return Dismissible(
                     key: Key(items[index].id.toString()),
                     onDismissed: (direction) {
-                      setState(() {
-                        var deletedItem = items.removeAt(index);
-                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                            content: Text(
-                              '${deletedItem.name} removed from list',
-                              style: TextStyle(
-                                  color: Theme.of(context)
-                                      .colorScheme
-                                      .onErrorContainer),
-                            ),
-                            backgroundColor:
-                                Theme.of(context).colorScheme.errorContainer));
-                      });
+                      _removeItem(direction, index);
                     },
                     background: Container(
                         color: Theme.of(context).colorScheme.errorContainer),
