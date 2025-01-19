@@ -17,17 +17,16 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   List<ItemModel> items = [];
-  late Future<List<ItemModel>> itemsFuture;
   bool isLoading = true;
 
   @override
   void initState() {
     super.initState();
     // items = ItemModel.getItems();
-    itemsFuture = _getAllItems();
+    _getAllItems();
   }
 
-  Future<List<ItemModel>> _getAllItems() async {
+  void _getAllItems() async {
     List<ItemModel> fetchedItems = [];
     final errorMessageSnackBar = showErrorSnackBar('Error retrieving items.');
 
@@ -50,7 +49,7 @@ class _HomePageState extends State<HomePage> {
           ScaffoldMessenger.of(context).showSnackBar(errorMessageSnackBar);
         }
 
-        return [];
+        return;
       }
 
       var responseData = json.decode(response.body) as Map<String, dynamic>?;
@@ -60,7 +59,7 @@ class _HomePageState extends State<HomePage> {
           isLoading = false;
         });
 
-        return [];
+        return;
       }
 
       for (var item in responseData.entries) {
@@ -75,11 +74,9 @@ class _HomePageState extends State<HomePage> {
       }
 
       setState(() {
-        // items = fetchedItems;
+        items = fetchedItems;
         isLoading = false;
       });
-
-      return fetchedItems;
     } catch (error) {
       debugPrint('Error saving item: ${error.toString()}');
       setState(() {
@@ -88,8 +85,6 @@ class _HomePageState extends State<HomePage> {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(errorMessageSnackBar);
       }
-
-      return [];
     }
   }
 
@@ -153,6 +148,12 @@ class _HomePageState extends State<HomePage> {
       child: Text('No items added yet'),
     );
 
+    if (isLoading) {
+      noDataContent = Center(
+        child: CircularProgressIndicator(),
+      );
+    }
+
     return Scaffold(
         appBar: AppBar(
           // backgroundColor: Colors.grey[900],
@@ -164,36 +165,25 @@ class _HomePageState extends State<HomePage> {
             IconButton(onPressed: _addItem, icon: const Icon(Icons.add))
           ],
         ),
-        body: FutureBuilder(
-            future: itemsFuture,
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return Center(
-                  child: CircularProgressIndicator(),
-                );
-              }
-
-              return items.isNotEmpty
-                  ? ListView.builder(
-                      itemCount: items.length,
-                      itemBuilder: (context, index) {
-                        return Dismissible(
-                          key: Key(items[index].id.toString()),
-                          onDismissed: (direction) {
-                            _removeItem(direction, index);
-                          },
-                          background: Container(
-                              color:
-                                  Theme.of(context).colorScheme.errorContainer),
-                          child: _ListItem(
-                            items: items,
-                            index: index,
-                          ),
-                        );
-                      },
-                    )
-                  : noDataContent;
-            }));
+        body: items.isNotEmpty
+            ? ListView.builder(
+                itemCount: items.length,
+                itemBuilder: (context, index) {
+                  return Dismissible(
+                    key: Key(items[index].id.toString()),
+                    onDismissed: (direction) {
+                      _removeItem(direction, index);
+                    },
+                    background: Container(
+                        color: Theme.of(context).colorScheme.errorContainer),
+                    child: _ListItem(
+                      items: items,
+                      index: index,
+                    ),
+                  );
+                },
+              )
+            : noDataContent);
   }
 }
 
