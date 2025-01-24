@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shopping_list/pages/home.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 void main() async {
   await dotenv.load(fileName: ".env");
-  runApp(const ShoppingListApp());
+  runApp(const ProviderScope(child: ShoppingListApp()));
 }
 
 class ShoppingListApp extends StatelessWidget {

@@ -2,26 +2,30 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 import 'package:shopping_list/common/utils.dart';
 import 'package:shopping_list/data/categories.dart';
 import 'package:shopping_list/models/item_model.dart';
 import 'package:shopping_list/pages/new_item.dart';
+import 'package:shopping_list/providers/login_provider.dart';
 
-class HomePage extends StatefulWidget {
+class HomePage extends ConsumerStatefulWidget {
   const HomePage({super.key});
 
   @override
-  State<HomePage> createState() => _HomePageState();
+  ConsumerState<HomePage> createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _HomePageState extends ConsumerState<HomePage> {
   List<ItemModel> items = [];
   bool isLoading = true;
+  bool isLoggedIn = false;
 
   @override
   void initState() {
     super.initState();
+    isLoggedIn = ref.watch(loginProvider);
     // items = ItemModel.getItems();
     _getAllItems();
   }
