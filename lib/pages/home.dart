@@ -7,6 +7,7 @@ import 'package:http/http.dart' as http;
 import 'package:shopping_list/common/utils.dart';
 import 'package:shopping_list/data/categories.dart';
 import 'package:shopping_list/models/item_model.dart';
+import 'package:shopping_list/models/login_state_model.dart';
 import 'package:shopping_list/pages/new_item.dart';
 import 'package:shopping_list/providers/login_provider.dart';
 
@@ -20,12 +21,11 @@ class HomePage extends ConsumerStatefulWidget {
 class _HomePageState extends ConsumerState<HomePage> {
   List<ItemModel> items = [];
   bool isLoading = true;
-  bool isLoggedIn = false;
+  late LoginStateModel loginStateModel;
 
   @override
   void initState() {
     super.initState();
-    isLoggedIn = ref.watch(loginProvider);
     // items = ItemModel.getItems();
     _getAllItems();
   }
@@ -148,6 +148,15 @@ class _HomePageState extends ConsumerState<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    loginStateModel = ref.watch(loginProvider);
+
+    // if (loginStateModel.isLoggedIn) {
+    //   _getAllItems();
+    // } else {
+    //   Navigator.of(context)
+    //       .push(MaterialPageRoute(builder: (context) => const LoginPage()));
+    // }
+
     var noDataContent = const Center(
       child: Text('No items added yet'),
     );

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:shopping_list/pages/home.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:shopping_list/pages/root.dart';
 
 void main() async {
   await dotenv.load(fileName: ".env");
@@ -23,7 +23,7 @@ class ShoppingListApp extends StatelessWidget {
             surface: const Color.fromARGB(255, 42, 51, 59)),
         scaffoldBackgroundColor: const Color.fromARGB(255, 50, 28, 60),
       ),
-      home: const HomePage(),
+      home: const RootPage(),
     );
   }
 }
