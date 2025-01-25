@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:shopping_list/common/utils.dart';
+import 'package:shopping_list/models/login_state_model.dart';
 import 'package:shopping_list/pages/home.dart';
 import 'package:shopping_list/providers/login_provider.dart';
 
@@ -15,6 +18,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
   bool formBeingSubmitted = false;
+  late LoginStateModel loginStateModel;
+  final storage = const FlutterSecureStorage();
 
   @override
   void dispose() {
@@ -23,8 +28,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     super.dispose();
   }
 
-  void _submitForm() {
-    //void errorSnackBar = showErrorSnackBar('Error logging in.');
+  void _submitForm() async {
+    final errorSnackBar =
+        showErrorSnackBar('Error: Incorrect email and/or password');
 
     if (!_formKey.currentState!.validate()) {
       return;
@@ -37,18 +43,50 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     debugPrint(
         'Submitting form with email: ${emailController.text} and password: ${passwordController.text}');
 
-    ref
-        .read(loginProvider.notifier)
-        .loginUser(emailController.text, passwordController.text);
+    try {
+      ref
+          .read(loginProvider.notifier)
+          .loginUser(emailController.text, passwordController.text);
+
+      setState(() {
+        formBeingSubmitted = false;
+      });
+
+      //final idToken =
+      //    await storage.read(key: 'token'); // loginStateModel.idToken;
+      //
+      //if (idToken == null || idToken.isEmpty) {
+      //  if (context.mounted) {
+      //    ScaffoldMessenger.of(context).showSnackBar(errorSnackBar);
+      //  }
+      //}
+    } catch (e) {
+      debugPrint('Error logging in: $e');
+      setState(() {
+        formBeingSubmitted = false;
+      });
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(errorSnackBar);
+      }
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    var isLoggedIn = ref.watch(loginProvider);
+    var loginStateModel = ref.watch(loginProvider);
 
-    if (isLoggedIn.isLoggedIn) {
+    if (loginStateModel.isLoggedIn) {
       Navigator.of(context)
           .push(MaterialPageRoute(builder: (context) => HomePage()));
+    } else {
+      debugPrint('User not logged in');
+      //try {
+      //  ScaffoldMessenger.of(context)
+      //      .showSnackBar(showErrorSnackBar('Invalid email and/or password.'));
+      //} catch (e) {
+      //  debugPrint('Error showing snackbar: $e');
+      //}
     }
 
     return Scaffold(
@@ -91,12 +129,18 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                   ),
                   SizedBox(height: 16),
                   ElevatedButton(
-                    onPressed: _submitForm,
+                    onPressed: formBeingSubmitted ? null : _submitForm,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Theme.of(context).colorScheme.primary,
                       foregroundColor: Theme.of(context).colorScheme.onPrimary,
                     ),
-                    child: const Text('Login'),
+                    child: formBeingSubmitted
+                        ? SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(),
+                          )
+                        : const Text('Login'),
                   )
                 ],
               )),

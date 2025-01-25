@@ -9,7 +9,7 @@ SnackBar showErrorSnackBar(String message) {
           color: Colors.red,
         ),
         SizedBox(width: 8),
-        Text('$message Please try again later.'),
+        Text(message),
       ],
     ),
     behavior: SnackBarBehavior.floating,

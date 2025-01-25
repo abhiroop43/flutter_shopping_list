@@ -8,8 +8,10 @@ import 'package:shopping_list/common/utils.dart';
 import 'package:shopping_list/data/categories.dart';
 import 'package:shopping_list/models/item_model.dart';
 import 'package:shopping_list/models/login_state_model.dart';
+import 'package:shopping_list/pages/login.dart';
 import 'package:shopping_list/pages/new_item.dart';
 import 'package:shopping_list/providers/login_provider.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class HomePage extends ConsumerStatefulWidget {
   const HomePage({super.key});
@@ -22,6 +24,7 @@ class _HomePageState extends ConsumerState<HomePage> {
   List<ItemModel> items = [];
   bool isLoading = true;
   late LoginStateModel loginStateModel;
+  final storage = const FlutterSecureStorage();
 
   @override
   void initState() {
@@ -32,16 +35,45 @@ class _HomePageState extends ConsumerState<HomePage> {
 
   void _getAllItems() async {
     List<ItemModel> fetchedItems = [];
+    final localId =
+        await storage.read(key: 'localId'); // loginStateModel.localId;
+    final idToken =
+        await storage.read(key: 'token'); // loginStateModel.idToken;
+    final tokenExpiry = await storage.read(key: 'expiryTime');
     final errorMessageSnackBar = showErrorSnackBar('Error retrieving items.');
 
-    var url = Uri.https(dotenv.env['BASEURL']!, 'shoppingList.json');
+    if (tokenExpiry == null || tokenExpiry.isEmpty) {
+      //if (context.mounted) {
+      //  Navigator.of(context)
+      //      .push(MaterialPageRoute(builder: (context) => const LoginPage()));
+      //}
+      return;
+    }
+
+    var expiryTime = DateTime.parse(tokenExpiry);
+    if (expiryTime.isBefore(DateTime.now())) {
+      return;
+      //if (context.mounted) {
+      //  Navigator.of(context)
+      //      .push(MaterialPageRoute(builder: (context) => const LoginPage()));
+      //}
+    }
+
+    final queryParameters = {
+      'auth': idToken,
+    };
+
+    var url =
+        Uri.https(dotenv.env['BASEURL']!, 'shoppingList.json', queryParameters);
+
+    debugPrint('URL: $url');
 
     try {
       var response = await http.get(url, headers: {
         'Accept': 'application/json',
       });
 
-      // debugPrint('Response: ${response.statusCode} : ${response.body}');
+      debugPrint('Response: ${response.statusCode} : ${response.body}');
 
       if (response.statusCode >= 400) {
         debugPrint('Error occured: ${response.body}');
@@ -150,12 +182,10 @@ class _HomePageState extends ConsumerState<HomePage> {
   Widget build(BuildContext context) {
     loginStateModel = ref.watch(loginProvider);
 
-    // if (loginStateModel.isLoggedIn) {
-    //   _getAllItems();
-    // } else {
-    //   Navigator.of(context)
-    //       .push(MaterialPageRoute(builder: (context) => const LoginPage()));
-    // }
+    if (!loginStateModel.isLoggedIn) {
+      Navigator.of(context)
+          .push(MaterialPageRoute(builder: (context) => const LoginPage()));
+    }
 
     var noDataContent = const Center(
       child: Text('No items added yet'),
