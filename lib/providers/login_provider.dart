@@ -45,63 +45,62 @@ class LoginNotifier extends StateNotifier<LoginStateModel> {
     return state;
   }
 
-  void loginUser(String email, String password) async {
+  Future<bool> loginUser(String email, String password) async {
     var authUrl =
         Uri.parse('https://${dotenv.env['AUTHURL']!}${dotenv.env['APIKEY']!}');
 
-    //try {
-    var response = await http.post(authUrl,
-        body: jsonEncode({
-          'email': email,
-          'password': password,
-          'returnSecureToken': 'true',
-        }),
-        headers: {'Content-Type': 'application/json'});
+    try {
+      var response = await http.post(authUrl,
+          body: jsonEncode({
+            'email': email,
+            'password': password,
+            'returnSecureToken': 'true',
+          }),
+          headers: {'Content-Type': 'application/json'});
 
-    debugPrint(response.statusCode.toString());
-    debugPrint(response.body);
+      debugPrint(response.statusCode.toString());
+      debugPrint(response.body);
 
-    if (response.statusCode != 200) {
-      debugPrint('Failed to log in. ${response.statusCode}: ${response.body}.');
-      throw Exception('Failed to log in.');
+      if (response.statusCode != 200) {
+        debugPrint(
+            'Failed to log in. ${response.statusCode}: ${response.body}.');
+        // throw Exception('Failed to log in.');
+        return false;
+      }
+
+      var decodedResponse = json.decode(response.body) as Map<String, dynamic>?;
+
+      if (decodedResponse == null) {
+        debugPrint(
+            'Failed to log in. ${response.statusCode}: ${response.body}.');
+        // throw Exception('Failed to log in.');
+        return false;
+      }
+
+      state = LoginStateModel(
+          localId: decodedResponse['localId'],
+          email: decodedResponse['email'],
+          displayName: decodedResponse['displayName'],
+          idToken: decodedResponse['idToken'],
+          registered: decodedResponse['registered'],
+          refreshToken: decodedResponse['refreshToken'],
+          expiresIn: decodedResponse['expiresIn'],
+          isLoggedIn: true);
+
+      final expiryTime =
+          DateTime.now().add(Duration(seconds: int.parse(state.expiresIn)));
+
+      await storage.write(key: 'token', value: state.idToken);
+      await storage.write(
+          key: 'expiryTime', value: expiryTime.toIso8601String());
+      await storage.write(key: 'refreshToken', value: state.refreshToken);
+      await storage.write(key: 'localId', value: state.localId);
+
+      return true;
+    } catch (e) {
+      debugPrint('Error logging in: $e');
+      return false;
     }
-
-    var decodedResponse = json.decode(response.body) as Map<String, dynamic>?;
-
-    if (decodedResponse == null) {
-      debugPrint('Failed to log in. ${response.statusCode}: ${response.body}.');
-      throw Exception('Failed to log in.');
-    }
-
-    state = LoginStateModel(
-        localId: decodedResponse['localId'],
-        email: decodedResponse['email'],
-        displayName: decodedResponse['displayName'],
-        idToken: decodedResponse['idToken'],
-        registered: decodedResponse['registered'],
-        refreshToken: decodedResponse['refreshToken'],
-        expiresIn: decodedResponse['expiresIn'],
-        isLoggedIn: true);
-
-    final expiryTime =
-        DateTime.now().add(Duration(seconds: int.parse(state.expiresIn)));
-
-    await storage.write(key: 'token', value: state.idToken);
-    await storage.write(key: 'expiryTime', value: expiryTime.toIso8601String());
-    await storage.write(key: 'refreshToken', value: state.refreshToken);
-    await storage.write(key: 'localId', value: state.localId);
-    //} catch (error) {
-    //  debugPrint(error.toString());
-    //  state = LoginStateModel(
-    //      localId: '',
-    //      email: '',
-    //      displayName: '',
-    //      idToken: '',
-    //      registered: false,
-    //      refreshToken: '',
-    //      expiresIn: '',
-    //      isLoggedIn: false);
-    //}
   }
 
   void logoutUser() {

@@ -43,51 +43,37 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     debugPrint(
         'Submitting form with email: ${emailController.text} and password: ${passwordController.text}');
 
-    try {
-      ref
-          .read(loginProvider.notifier)
-          .loginUser(emailController.text, passwordController.text);
+    bool loginSuccess = await ref
+        .read(loginProvider.notifier)
+        .loginUser(emailController.text, passwordController.text);
 
-      setState(() {
-        formBeingSubmitted = false;
-      });
-
-      //final idToken =
-      //    await storage.read(key: 'token'); // loginStateModel.idToken;
-      //
-      //if (idToken == null || idToken.isEmpty) {
-      //  if (context.mounted) {
-      //    ScaffoldMessenger.of(context).showSnackBar(errorSnackBar);
-      //  }
-      //}
-    } catch (e) {
-      debugPrint('Error logging in: $e');
-      setState(() {
-        formBeingSubmitted = false;
-      });
-
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(errorSnackBar);
-      }
+    if (!mounted) {
+      return;
     }
+
+    setState(() {
+      formBeingSubmitted = false;
+    });
+
+    if (!loginSuccess) {
+      ScaffoldMessenger.of(context).showSnackBar(errorSnackBar);
+      return;
+    }
+
+    Navigator.of(context)
+        .push(MaterialPageRoute(builder: (context) => HomePage()));
   }
 
   @override
   Widget build(BuildContext context) {
-    var loginStateModel = ref.watch(loginProvider);
+    // var loginStateModel = ref.watch(loginProvider);
 
-    if (loginStateModel.isLoggedIn) {
-      Navigator.of(context)
-          .push(MaterialPageRoute(builder: (context) => HomePage()));
-    } else {
-      debugPrint('User not logged in');
-      //try {
-      //  ScaffoldMessenger.of(context)
-      //      .showSnackBar(showErrorSnackBar('Invalid email and/or password.'));
-      //} catch (e) {
-      //  debugPrint('Error showing snackbar: $e');
-      //}
-    }
+    // if (loginStateModel.isLoggedIn) {
+    //   Navigator.of(context)
+    //       .push(MaterialPageRoute(builder: (context) => HomePage()));
+    // } else {
+    //   debugPrint('User not logged in');
+    // }
 
     return Scaffold(
         appBar: AppBar(

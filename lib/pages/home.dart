@@ -43,20 +43,12 @@ class _HomePageState extends ConsumerState<HomePage> {
     final errorMessageSnackBar = showErrorSnackBar('Error retrieving items.');
 
     if (tokenExpiry == null || tokenExpiry.isEmpty) {
-      //if (context.mounted) {
-      //  Navigator.of(context)
-      //      .push(MaterialPageRoute(builder: (context) => const LoginPage()));
-      //}
       return;
     }
 
     var expiryTime = DateTime.parse(tokenExpiry);
     if (expiryTime.isBefore(DateTime.now())) {
       return;
-      //if (context.mounted) {
-      //  Navigator.of(context)
-      //      .push(MaterialPageRoute(builder: (context) => const LoginPage()));
-      //}
     }
 
     final queryParameters = {
@@ -133,8 +125,6 @@ class _HomePageState extends ConsumerState<HomePage> {
         items.add(newItem as ItemModel);
       });
     }
-
-    // _getAllItems();
   }
 
   void _removeItem(DismissDirection direction, int index) async {
