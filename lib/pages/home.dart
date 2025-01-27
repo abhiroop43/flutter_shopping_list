@@ -35,10 +35,17 @@ class _HomePageState extends ConsumerState<HomePage> {
 
   void _getAllItems() async {
     List<ItemModel> fetchedItems = [];
-    final localId =
-        await storage.read(key: 'localId'); // loginStateModel.localId;
-    final idToken =
-        await storage.read(key: 'token'); // loginStateModel.idToken;
+    //final localId =
+    //    await storage.read(key: 'localId');
+    //final idToken =
+    //    await storage.read(key: 'token');
+
+    final loginStateModel =
+        await ref.read(loginProvider.notifier).checkUserLoginStatus();
+
+    final idToken = loginStateModel.idToken;
+    final localId = loginStateModel.localId;
+
     final tokenExpiry = await storage.read(key: 'expiryTime');
     final errorMessageSnackBar = showErrorSnackBar('Error retrieving items.');
 
@@ -51,12 +58,8 @@ class _HomePageState extends ConsumerState<HomePage> {
       return;
     }
 
-    final queryParameters = {
-      'auth': idToken,
-    };
-
-    var url =
-        Uri.https(dotenv.env['BASEURL']!, 'shoppingList.json', queryParameters);
+    var url = Uri.parse(
+        'https://${dotenv.env['BASEURL']!}/shoppingList/$localId.json?auth=$idToken');
 
     debugPrint('URL: $url');
 

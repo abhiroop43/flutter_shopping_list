@@ -31,18 +31,18 @@ class LoginNotifier extends StateNotifier<LoginStateModel> {
       if (expiryTime.isAfter(DateTime.now()) &&
           token != null &&
           token.isNotEmpty) {
-        state = LoginStateModel(
-            localId: '',
-            email: '',
-            displayName: '',
-            idToken: token,
-            registered: false,
-            refreshToken: '',
-            expiresIn: '',
-            isLoggedIn: true);
+        return state;
       }
     }
-    return state;
+    return state = LoginStateModel(
+        localId: '',
+        email: '',
+        displayName: '',
+        idToken: '',
+        registered: false,
+        refreshToken: '',
+        expiresIn: '',
+        isLoggedIn: true);
   }
 
   Future<bool> loginUser(String email, String password) async {
