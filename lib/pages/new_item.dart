@@ -2,25 +2,29 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:shopping_list/common/utils.dart';
 import 'package:shopping_list/data/categories.dart';
 import 'package:shopping_list/models/category_model.dart';
 import 'package:shopping_list/models/item_model.dart';
+import 'package:shopping_list/providers/login_provider.dart';
 
-class NewItemPage extends StatefulWidget {
+class NewItemPage extends ConsumerStatefulWidget {
   const NewItemPage({super.key});
 
   @override
-  State<NewItemPage> createState() => _NewItemPageState();
+  ConsumerState<NewItemPage> createState() => _NewItemPageState();
 }
 
-class _NewItemPageState extends State<NewItemPage> {
+class _NewItemPageState extends ConsumerState<NewItemPage> {
   final _formKey = GlobalKey<FormState>();
   var nameController = TextEditingController();
   var quantityController = TextEditingController(text: '1');
   var selectedCategory = categories[Categories.vegetables];
   bool isBeingAdded = false;
+  final storage = const FlutterSecureStorage();
 
   void _saveItem() async {
     final errorMessageSnackBar = showErrorSnackBar('Error saving item.');
@@ -31,13 +35,35 @@ class _NewItemPageState extends State<NewItemPage> {
       // debugPrint('Quantity: ${quantityController.text}');
       // debugPrint('Category: ${selectedCategory!.name}');
 
+      final loginStateModel =
+          await ref.read(loginProvider.notifier).checkUserLoginStatus();
+
+      final idToken = loginStateModel.idToken;
+      final localId = loginStateModel.localId;
+
+      if (idToken.isEmpty) {
+        return;
+      }
+
+      final tokenExpiry = await storage.read(key: 'expiryTime');
+
+      if (tokenExpiry == null || tokenExpiry.isEmpty) {
+        return;
+      }
+
+      var expiryTime = DateTime.parse(tokenExpiry);
+      if (expiryTime.isBefore(DateTime.now())) {
+        return;
+      }
       _formKey.currentState!.save();
 
       setState(() {
         isBeingAdded = true;
       });
 
-      var url = Uri.https(dotenv.env['BASEURL']!, 'shoppingList.json');
+      var url = Uri.parse(
+          'https://${dotenv.env['BASEURL']!}/shoppingList/$localId.json?auth=$idToken');
+
       try {
         var response = await http.post(url,
             headers: {
@@ -53,7 +79,7 @@ class _NewItemPageState extends State<NewItemPage> {
 
         if (response.statusCode >= 400) {
           debugPrint('Error saving item');
-          if (context.mounted) {
+          if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(errorMessageSnackBar);
           }
           setState(() {
@@ -64,7 +90,7 @@ class _NewItemPageState extends State<NewItemPage> {
           debugPrint('Item saved');
         }
 
-        if (!context.mounted) return;
+        if (!mounted) return;
 
         setState(() {
           isBeingAdded = false;
@@ -78,7 +104,7 @@ class _NewItemPageState extends State<NewItemPage> {
             category: selectedCategory!));
       } catch (error) {
         debugPrint('Error saving item: ${error.toString()}');
-        if (context.mounted) {
+        if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(errorMessageSnackBar);
         }
 

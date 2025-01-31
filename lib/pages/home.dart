@@ -29,22 +29,21 @@ class _HomePageState extends ConsumerState<HomePage> {
   @override
   void initState() {
     super.initState();
-    // items = ItemModel.getItems();
     _getAllItems();
   }
 
   void _getAllItems() async {
     List<ItemModel> fetchedItems = [];
-    //final localId =
-    //    await storage.read(key: 'localId');
-    //final idToken =
-    //    await storage.read(key: 'token');
 
     final loginStateModel =
         await ref.read(loginProvider.notifier).checkUserLoginStatus();
 
     final idToken = loginStateModel.idToken;
     final localId = loginStateModel.localId;
+
+    if (idToken.isEmpty) {
+      return;
+    }
 
     final tokenExpiry = await storage.read(key: 'expiryTime');
     final errorMessageSnackBar = showErrorSnackBar('Error retrieving items.');
@@ -76,7 +75,7 @@ class _HomePageState extends ConsumerState<HomePage> {
           isLoading = false;
         });
 
-        if (context.mounted) {
+        if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(errorMessageSnackBar);
         }
 
@@ -113,7 +112,7 @@ class _HomePageState extends ConsumerState<HomePage> {
       setState(() {
         isLoading = false;
       });
-      if (context.mounted) {
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(errorMessageSnackBar);
       }
     }
@@ -143,7 +142,7 @@ class _HomePageState extends ConsumerState<HomePage> {
 
       debugPrint('${response.statusCode} : ${response.body.toString()}');
       if (response.statusCode >= 400) {
-        if (context.mounted) {
+        if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(errorMessageSnackBar);
         }
         return;
@@ -165,7 +164,7 @@ class _HomePageState extends ConsumerState<HomePage> {
     } catch (error) {
       debugPrint('Error occurred. ${error.toString()}');
 
-      if (context.mounted) {
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(errorMessageSnackBar);
       }
     }
