@@ -103,6 +103,15 @@ class LoginNotifier extends StateNotifier<LoginStateModel> {
     }
   }
 
+  Future<bool> registerUser(String email, String password) async {
+    try {
+      return true;
+    } catch (e) {
+      debugPrint('Error during registration: $e');
+      return false;
+    }
+  }
+
   void logoutUser() {
     // Logout logic here
     state = LoginStateModel(

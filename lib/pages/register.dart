@@ -1,38 +1,32 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:shopping_list/common/utils.dart';
-import 'package:shopping_list/models/login_state_model.dart';
 import 'package:shopping_list/pages/home.dart';
-import 'package:shopping_list/pages/register.dart';
-import 'package:shopping_list/providers/login_provider.dart';
 
-class LoginPage extends ConsumerStatefulWidget {
-  const LoginPage({super.key});
+class RegisterPage extends ConsumerStatefulWidget {
+  const RegisterPage({super.key});
 
   @override
-  ConsumerState<LoginPage> createState() => _LoginPageState();
+  ConsumerState<RegisterPage> createState() => _RegisterPageState();
 }
 
-class _LoginPageState extends ConsumerState<LoginPage> {
+class _RegisterPageState extends ConsumerState<RegisterPage> {
   final _formKey = GlobalKey<FormState>();
+
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
+  final confirmPasswordController = TextEditingController();
+
   bool formBeingSubmitted = false;
-  late LoginStateModel loginStateModel;
-  final storage = const FlutterSecureStorage();
 
   @override
   void dispose() {
     emailController.dispose();
     passwordController.dispose();
+    confirmPasswordController.dispose();
     super.dispose();
   }
 
-  void _submitForm() async {
-    final errorSnackBar =
-        showErrorSnackBar('Error: Incorrect email and/or password');
-
+  void _submitForm() {
     if (!_formKey.currentState!.validate()) {
       return;
     }
@@ -41,25 +35,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       formBeingSubmitted = true;
     });
 
-    debugPrint(
-        'Submitting form with email: ${emailController.text} and password: ${passwordController.text}');
-
-    bool loginSuccess = await ref
-        .read(loginProvider.notifier)
-        .loginUser(emailController.text, passwordController.text);
-
-    if (!mounted) {
-      return;
-    }
-
     setState(() {
       formBeingSubmitted = false;
     });
-
-    if (!loginSuccess) {
-      ScaffoldMessenger.of(context).showSnackBar(errorSnackBar);
-      return;
-    }
 
     Navigator.of(context)
         .push(MaterialPageRoute(builder: (context) => HomePage()));
@@ -70,7 +48,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     return Scaffold(
         appBar: AppBar(
           title: const Text(
-            'Login',
+            'Register',
             style: TextStyle(color: Colors.white),
           ),
         ),
@@ -106,6 +84,24 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                     },
                   ),
                   SizedBox(height: 16),
+                  TextFormField(
+                    controller: confirmPasswordController,
+                    decoration: InputDecoration(labelText: 'Confirm Password'),
+                    obscureText: true,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter a password';
+                      }
+                      if (value.length < 6) {
+                        return 'Password must be at least 6 characters';
+                      }
+                      if (value != passwordController.value.toString()) {
+                        return 'Password and Confirm Password fields must match';
+                      }
+                      return null;
+                    },
+                  ),
+                  SizedBox(height: 16),
                   ElevatedButton(
                     onPressed: formBeingSubmitted ? null : _submitForm,
                     style: ElevatedButton.styleFrom(
@@ -118,18 +114,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                             height: 16,
                             child: CircularProgressIndicator(),
                           )
-                        : const Text('Login'),
-                  ),
-                  SizedBox(
-                    height: 8,
-                  ),
-                  TextButton(
-                    onPressed: () {
-                      Navigator.of(context).push(MaterialPageRoute(
-                          builder: (context) => RegisterPage()));
-                    },
-                    child: Text('New user? Please register here.',
-                        style: Theme.of(context).textTheme.bodyMedium),
+                        : const Text('Register'),
                   )
                 ],
               )),
