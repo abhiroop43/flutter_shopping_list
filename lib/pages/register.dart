@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shopping_list/common/utils.dart';
 import 'package:shopping_list/pages/home.dart';
+import 'package:shopping_list/providers/login_provider.dart';
 
 class RegisterPage extends ConsumerStatefulWidget {
   const RegisterPage({super.key});
@@ -26,7 +28,9 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
     super.dispose();
   }
 
-  void _submitForm() {
+  void _submitForm() async {
+    final errorSnackBar = showErrorSnackBar('Failed to register user.');
+
     if (!_formKey.currentState!.validate()) {
       return;
     }
@@ -35,9 +39,25 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
       formBeingSubmitted = true;
     });
 
+    debugPrint(
+        'Registering user with email: ${emailController.text} password: ${passwordController.text}');
+
+    bool isRegistered = await ref
+        .read(loginProvider.notifier)
+        .registerUser(emailController.text, passwordController.text);
+
     setState(() {
       formBeingSubmitted = false;
     });
+
+    if (!mounted) {
+      return;
+    }
+
+    if (!isRegistered) {
+      ScaffoldMessenger.of(context).showSnackBar(errorSnackBar);
+      return;
+    }
 
     Navigator.of(context)
         .push(MaterialPageRoute(builder: (context) => HomePage()));
@@ -95,7 +115,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                       if (value.length < 6) {
                         return 'Password must be at least 6 characters';
                       }
-                      if (value != passwordController.value.toString()) {
+                      if (value != passwordController.text.toString()) {
                         return 'Password and Confirm Password fields must match';
                       }
                       return null;

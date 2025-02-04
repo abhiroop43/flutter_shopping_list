@@ -42,6 +42,9 @@ class _HomePageState extends ConsumerState<HomePage> {
     final localId = loginStateModel.localId;
 
     if (idToken.isEmpty) {
+      setState(() {
+        isLoading = false;
+      });
       return;
     }
 
@@ -49,11 +52,17 @@ class _HomePageState extends ConsumerState<HomePage> {
     final errorMessageSnackBar = showErrorSnackBar('Error retrieving items.');
 
     if (tokenExpiry == null || tokenExpiry.isEmpty) {
+      setState(() {
+        isLoading = false;
+      });
       return;
     }
 
     var expiryTime = DateTime.parse(tokenExpiry);
     if (expiryTime.isBefore(DateTime.now())) {
+      setState(() {
+        isLoading = false;
+      });
       return;
     }
 
